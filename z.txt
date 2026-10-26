@@ -1,0 +1,185 @@
+================================================================================
+GLOOP'S GLITCH LAB — COMPREHENSIVE PROJECT BRIEF, ARCHITECTURE & ROADMAP
+================================================================================
+
+1. EXECUTIVE SUMMARY & BRAND IDENTITY
+--------------------------------------------------------------------------------
+• Project: "Gloop's Glitch Lab"
+• Tagline: "Run. Fail. Learn. Again." / "One challenge. One run. Thirty seconds."
+• Concept: A 3D obstacle-runner browser game engineered as an automated video 
+  factory. A user/creator inputs or selects a challenge, the engine generates 
+  a deterministic seeded level, executes a high-stakes run, composites text, 
+  scores, dynamic overlays and audio, and exports a vertical YouTube Short 
+  (1080x1920, 9:16, 30s, 30fps, H.264 MP4).
+• Core Metaphor: The audience watches a small hero tackle a giant, absurd 
+  course, gather rewards, grow, dodge lethal traps, navigate an unexpected 
+  twist, and reach an unambiguous win/fail resolution.
+
+2. CORE CHARACTERS
+--------------------------------------------------------------------------------
+A. Gloop (The Hero)
+   - Visual: Rounded glossy turquoise/cyan jelly blob, oversized expressive eyes
+     (white sclera, dark pupils, shiny catchlights), readable eyebrows, cute 
+     mouth, stubby jelly arms, and orange-and-white sneakers.
+   - 6 Expression States: Happy, Surprised, Determined, Scared, Sad, Win.
+   - Dynamic Growth Mechanic: As Gloop collects orbs, he grows! Collected orbs 
+     form a trailing stack/chain of glossy spheres under him, elevating him 
+     higher. On the victory screen, Gloop stands crowned atop the orb tower.
+   - Animation States: Idle breathing squash, run cycle with shoe kicks and arm 
+     pumps, high stretch jump, flat slide squash, lane tilt, hit-react, victory.
+
+B. Glitchmaker (The Antagonist)
+   - Visual: Menacing floating purple glowing cube with angry orange/yellow eye slits
+     and orbiting voxel/pixel glitch shards.
+   - 4 States: Normal, Angry, Glitch, Laugh.
+   - Role: Spawns during Beat 3 (Twist) to trigger rule flips, gravity shifts,
+     or projectile barrages.
+
+C. Pip (The Guide)
+   - Visual: Cute floating golden star guide offering navigation hints and audio 
+     accents during key moments.
+
+3. THE FOUR WORLDS (Distinct Visual Art Direction)
+--------------------------------------------------------------------------------
+Each world features unique palettes, fog, props, lighting, and materials:
+1. Sky Islands:
+   - Floating green emerald islands, bright cyan sky, fluffy volumetric clouds, 
+     floating fantasy castles, waterfalls, and golden finish portal.
+2. Candy Factory:
+   - Pastel pink roadways, oversized striped gumdrop mounds, candy cane arches, 
+     frosting curbs, and jelly obstacles.
+3. Ice World:
+   - Glacial frosted tracks, deep blue sapphire ice crystal spires, falling snow 
+     particles, and reflective ice sheen.
+4. Lava Land:
+   - Volcanic dark basalt/obsidian bridges, churning glowing magma below, 
+     fiery orange fissure lighting, and floating ember particles.
+
+4. CORE RULES & MECHANICS
+--------------------------------------------------------------------------------
+• Objective: Reach the golden "FINAL TEST" arch with >= Target Orbs before 
+  the timer reaches 0.
+• Orb Rules: Blue orbs = +1; Red orbs = -1 / hazard. A mid-run "RULE FLIP" twist 
+  swaps the colors (Red becomes good, Blue bad) with immediate HUD notification.
+• Mathematical Choice Gates: Green is ALWAYS positive (+5 Orbs); Red is ALWAYS 
+  negative (-3 Orbs).
+• Hazards:
+  - Giant swinging red-and-white pendulum hammers (duck or switch lane).
+  - Ground-based rotating spike cylinders (jump over).
+  - Spring-loaded bounce pads (super launch over hazards into orb arcs).
+• Heart / Life System: Configurable per episode (e.g., Ep 002 is strictly 
+  "One hit ends the run").
+• Controller: 3 lanes (Left: -2.4, Center: 0, Right: +2.4), Jump, Slide.
+  Inputs supported: Keyboard (A/D/Space/S/Arrows), Touch/Swipe, and Bot Autopilot.
+
+5. THE 30-SECOND NARRATIVE TIMELINE (6 BEATS)
+--------------------------------------------------------------------------------
+• 00–03s | Beat 1 — HOOK: Immediate tension, prominent goal banner ("20 ORBS? ONE RUN.")
+• 03–08s | Beat 2 — COLLECT & GROW: Fast orb trails, chime combos, stack begins growing
+• 08–14s | Beat 3 — TWIST: Rule flip, color gate choice, or Glitchmaker appearance
+• 14–22s | Beat 4 — HARD OBSTACLES: Swinging hammers, spike rollers, tight timing
+• 22–28s | Beat 5 — FINAL RUN: Final sprint, finish arch looms, orb count closing in
+• 28–30s | Beat 6 — RESULT: Golden arch crossed; WIN fanfare + confetti or FAIL cue
+
+6. CANONICAL EPISODE CATALOG (EP 001 - 010)
+--------------------------------------------------------------------------------
+• EP 001: Grow to 20              (Sky Islands | Collect 20 | Rule Flip | Hammers)
+• EP 002: One Hit Ends This Run    (Candy World | Hearts: 1 | Zero-hit survival)
+• EP 003: Blue or Red?            (Sky Islands | Choice Gate heavy | Split route)
+• EP 004: Giant Mode              (Ice World | Size power-up | Towering obstacles)
+• EP 005: Survive the Hammers     (Sky Islands | Multi-hammer obstacle corridor)
+• EP 006: Collect 30 Gems         (Candy World | Dense gem rows | High-speed run)
+• EP 007: Gravity Flip            (Ice World | Inverted camera & track run)
+• EP 008: Tiny to Giant           (Lava Land | Continuous growth curve)
+• EP 009: Escape the Maze         (Sky Islands | Branching path corridors)
+• EP 010: Final Boss              (Lava Land | Glitchmaker boss confrontation)
+
+7. TECHNICAL ARCHITECTURE: 3-TIER SEPARATION
+--------------------------------------------------------------------------------
+RULE: The simulation is strictly isolated from visual rendering.
+Visual polish must never alter collision math, physics updates, RNG seeding, or replay.
+
+   +-------------------------------------------------------------+
+   | 1. EPISODE CONFIG (Data Layer)                              |
+   |    - Pure JSON/TS config: world, target, hearts, duration,  |
+   |      seed, and sequence of narrative beat events.           |
+   +------------------------------+------------------------------+
+                                  |
+                                  v
+   +-------------------------------------------------------------+
+   | 2. SIMULATION ENGINE (Deterministic Logic)                  |
+   |    - 60Hz fixed-step runner physics, lane math, collision   |
+   |      volumes, orb counts, beat transitions, seeded RNG.    |
+   +------------------------------+------------------------------+
+                                  |
+                                  v
+   +-------------------------------------------------------------+
+   | 3. VIEW & COMPOSITING LAYER (Three.js & Remotion)           |
+   |    - R3F Canvas, stylized shaders, GLB meshes, lighting,    |
+   |      chase camera, HUD, Web Audio synth, Remotion exporter. |
+   +-------------------------------------------------------------+
+
+8. CURRENT REPOSITORY AUDIT & GAP ANALYSIS
+--------------------------------------------------------------------------------
+What Works:
+  ✔ Complete playable 3D runner in React 19 + Three.js + R3F + Zustand.
+  ✔ 6-beat timeline scrubber and narrative progression.
+  ✔ 4 distinct world definitions (Sky, Candy, Ice, Lava).
+  ✔ Deterministic Mulberry32 level generator with reproducible seeds.
+  ✔ Offline procedural Web Audio synthesizer (BGM loops, chimes, fanfares).
+  ✔ Automated bot controller (useBotController) for hands-free recordings.
+  ✔ MediaRecorder canvas capture + Remotion server-side rendering pipeline.
+  ✔ Vitest unit tests passing 100%.
+
+Identified Visual & Mechanical Improvements (The Quality Bar):
+  1. Gloop Face in Gameplay: Gloop is currently viewed mostly from behind. 
+     Add a dynamic camera angle or slight 3/4 chase offset so his expressive 
+     face, eyes, and moods are clearly readable in the hook and victory shots.
+  2. Trailing Orb Stack: Replace uniform scaling with the canonical chain 
+     of collected spheres stacking beneath Gloop.
+  3. Stumble Guys Material Polish: Upgrade track from solid color to glossy 
+     checkerboard with toy-like striped side curbs, soft ambient occlusion, 
+     and bloom highlights.
+  4. Curated GLB Meshes: Transition from procedural CSG primitives to low-poly 
+     curated GLB models for castles, hammers, and character meshes as specified 
+     in IMPLEMENTATION.md.
+  5. Guaranteed Bot Win Margin: In "Record Mode", calibrate the bot controller 
+     to reliably reach >= Target Orbs with a 1-2 orb safety buffer for flawless 
+     video exports every single time.
+
+9. IMPLEMENTATION PHASES & VERIFICATION GATES
+--------------------------------------------------------------------------------
+• Phase 1: Render Pipeline & Materials
+  - Glossy PBR materials, soft shadows, rim lighting, checkered track tiles.
+  - Gate: Playwright screenshot of Beat 1 showing rich lighting vs reference.
+• Phase 2: Gloop Expressions & Orb Chain Stack
+  - Add 6 distinct face texture states; render the trailing stack of collected orbs.
+  - Gate: Screenshot of Gloop crowned atop orb stack on win screen.
+• Phase 3: Sky Islands Reference Slice (EP 001)
+  - Golden "FINAL TEST" arch, candy-striped rails, background fantasy towers.
+  - Gate: 6-beat screenshot storyboard matching the reference composition.
+• Phase 4: Hazards, Gates & Clean HUD
+  - High-readability +5/-3 gate arches, properly proportioned swinging hammers.
+  - Gate: HUD elements completely clear of mobile Shorts UI safe zones.
+• Phase 5: Remotion & MP4 Export Validation
+  - Bot autoplay run -> Canvas capture -> Remotion composite -> FFmpeg H.264.
+  - Gate: Playable 1080x1920 MP4 verified with ffprobe.
+• Phase 6: Worlds Expansion (Candy, Ice, Lava) & Episodes 002-010.
+
+10. CRITICAL WORKSPACE CODE POINTERS
+--------------------------------------------------------------------------------
+• Gloop 3D Character:      src/game/characters/Gloop.tsx
+• Master Scene & Loop:     src/game/GameScene.tsx
+• Episode Presets:         src/config/episodes.ts
+• World Configurations:    src/config/worlds.ts
+• In-Game HUD & Safe Zone: src/game/ui/GameOverlay.tsx
+• Audio Synthesizer:       src/game/audio/SoundManager.ts
+• Level Generator:         src/utils/levelGenerator.ts
+• Bot Autopilot:           src/game/physics/useBotController.ts
+• Video Recording Engine:  src/game/recording/VideoRecorder.ts
+• Remotion Composition:    src/video/Composition.tsx
+• Local Render Server:     server/index.mjs
+
+================================================================================
+END OF SUMMARY · GLOOP'S GLITCH LAB (z.txt)
+================================================================================
