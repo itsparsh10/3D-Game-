@@ -4,78 +4,48 @@ import * as THREE from "three";
 import { useGameStore } from "../../store/gameStore";
 
 export const GameCamera: React.FC = () => {
-  const { camera, size } = useThree();
-  const playerX = useGameStore((state) => state.playerX);
-  const playerY = useGameStore((state) => state.playerY);
-  const playerZ = useGameStore((state) => state.playerZ);
-  const status = useGameStore((state) => state.status);
-  const shakeIntensity = useGameStore((state) => state.shakeIntensity);
+  const { camera } = useThree();
+  const lookAtRef = useRef(new THREE.Vector3(0, 1.2, 0));
 
-  const currentCamPos = useRef(new THREE.Vector3(0, 4, 7));
-  const currentLookAt = useRef(new THREE.Vector3(0, 1.2, 0));
+  useFrame((_, dt) => {
+    const s = useGameStore.getState();
+    const px = s.playerX;
+    // Account for victory podium height if standing on orb stack
+    const targetLiftY = s.status === "victory" ? Math.min(s.orbsCollected, 40) * 0.48 : 0;
+    const py = s.playerY + targetLiftY;
+    const pz = s.playerZ;
 
-  useFrame((state, delta) => {
-    const t = state.clock.getElapsedTime();
+    const t = s.elapsedTime;
+    const isResult = s.status === "victory" || s.status === "defeat";
 
-    // Default chase camera offset: 3.5 units above, 6.5 units behind
-    let targetX = playerX * 0.45;
-    let targetY = playerY * 0.25 + 4.4;
-    let targetZ = playerZ + (size.width < size.height ? 8.5 : 7.5);
+    let targetPos: THREE.Vector3;
+    let targetLook: THREE.Vector3;
 
-    let lookAtX = playerX * 0.7;
-    let lookAtY = playerY * 0.5 + 1.2;
-    let lookAtZ = playerZ - 9; // Look ahead into the track
-
-    if (status === "idle") {
-      targetX = size.width > size.height ? -6 : -4;
-      targetY = 3.2;
-      targetZ = 7;
-      lookAtX = 1;
-      lookAtY = size.width < size.height ? 2.3 : 1.1;
-      lookAtZ = -1;
-    }
-    // Camera shake calculation
-    if (shakeIntensity > 0.01) {
-      const shakeX = (Math.random() - 0.5) * shakeIntensity * 0.4;
-      const shakeY = (Math.random() - 0.5) * shakeIntensity * 0.4;
-      targetX += shakeX;
-      targetY += shakeY;
+    if (isResult) {
+      // Result Close-up: In front of Gloop's face looking up at his crown & expression
+      targetPos = new THREE.Vector3(px, py + 1.8, pz - 3.8);
+      targetLook = new THREE.Vector3(px, py + 1.3, pz);
+    } else if (t < 2.5 && s.status === "running") {
+      // Beat 1 Hook: Front-facing 3/4 view showing Gloop's face & the opening arch
+      targetPos = new THREE.Vector3(px + 1.4, py + 1.6, pz - 4.5);
+      targetLook = new THREE.Vector3(px, py + 1.2, pz);
+    } else {
+      // 3/4 Dynamic Chase Camera: Behind Gloop (+Z), offset slightly (+X), looking ahead (-Z)
+      targetPos = new THREE.Vector3(px * 0.6 + 2.0, py * 0.4 + 3.2, pz + 6.8);
+      targetLook = new THREE.Vector3(px * 0.4, 1.2, pz - 7.0);
     }
 
-    // Victory cinematic orbit!
-    if (status === "victory") {
-      const orbitRadius = 4.0;
-      targetX = playerX + Math.sin(t * 1.5) * orbitRadius;
-      targetY = playerY + 2.0;
-      targetZ = playerZ + Math.cos(t * 1.5) * orbitRadius;
-
-      lookAtX = playerX;
-      lookAtY = playerY + 0.8;
-      lookAtZ = playerZ;
+    // Impact camera shake
+    if (s.shakeIntensity > 0.01) {
+      const shakeAmt = s.shakeIntensity * 0.35;
+      targetPos.x += (Math.random() - 0.5) * shakeAmt;
+      targetPos.y += (Math.random() - 0.5) * shakeAmt;
     }
 
-    // Smooth interpolation with delta time
-    const lerpSpeed = Math.min(1, delta * 8.5);
-    currentCamPos.current.x += (targetX - currentCamPos.current.x) * lerpSpeed;
-    currentCamPos.current.y += (targetY - currentCamPos.current.y) * lerpSpeed;
-    currentCamPos.current.z += (targetZ - currentCamPos.current.z) * lerpSpeed;
-
-    currentLookAt.current.x += (lookAtX - currentLookAt.current.x) * lerpSpeed;
-    currentLookAt.current.y += (lookAtY - currentLookAt.current.y) * lerpSpeed;
-    currentLookAt.current.z += (lookAtZ - currentLookAt.current.z) * lerpSpeed;
-
-    camera.position.copy(currentCamPos.current);
-    camera.lookAt(currentLookAt.current);
-
-    // Subtle lane-switch roll tilt
-    if (status === "running") {
-      const rollTilt = (targetX - currentCamPos.current.x) * -0.05;
-      camera.rotation.z = THREE.MathUtils.lerp(
-        camera.rotation.z,
-        rollTilt,
-        delta * 10,
-      );
-    }
+    const k = 1 - Math.exp(-6 * dt);
+    camera.position.lerp(targetPos, k);
+    lookAtRef.current.lerp(targetLook, k);
+    camera.lookAt(lookAtRef.current);
   });
 
   return null;

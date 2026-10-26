@@ -91,6 +91,10 @@ export interface WorldThemeConfig {
   sunColor: string;
   ambientColor: string;
   trackColor: string;
+  checkerA: string;
+  checkerB: string;
+  railA: string;
+  railB: string;
   trackEdgeColor: string;
   laneDividerColor: string;
   accentColor: string;

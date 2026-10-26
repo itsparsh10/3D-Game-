@@ -6,6 +6,7 @@ import { useGameStore } from "../store/gameStore";
 import { useStudioStore } from "../store/studioStore";
 import { EpisodeDifficulty, EpisodeTwist, WorldId } from "../types/game";
 import { VideoRecorder } from "../game/recording/VideoRecorder";
+import { findWinningSeed } from "../game/physics/useBotController";
 
 interface InspectorProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -29,9 +30,17 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
   // Handler to start synchronized video recording run
   const handleRecordRun = () => {
     if (!canvasRef.current) return;
+    if (!botAutoplay) {
+      toggleBotAutoplay();
+    }
+    const winningSeed = findWinningSeed(activeEpisode);
+    if (winningSeed !== activeEpisode.seed) {
+      setEpisode({ ...activeEpisode, seed: winningSeed });
+    }
     resetRun();
-    if (VideoRecorder.startRecording(canvasRef.current, 30))
+    if (VideoRecorder.startRecording(canvasRef.current, 30)) {
       useGameStore.getState().startRun();
+    }
   };
 
   const handleStopRecording = () => {

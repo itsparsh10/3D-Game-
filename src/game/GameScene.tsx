@@ -1,7 +1,8 @@
-import { Effects } from "./Effects";
-import { MechanicalHazard } from "./obstacles/MechanicalHazard";
 import React, { useEffect, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
+import { EffectComposer, Bloom, Vignette, ToneMapping } from "@react-three/postprocessing";
+import { ToneMappingMode } from "postprocessing";
+import * as THREE from "three";
 import { useGameStore } from "../store/gameStore";
 import { GameCamera } from "./camera/GameCamera";
 import { Gloop } from "./characters/Gloop";
@@ -11,16 +12,19 @@ import { BouncePad } from "./obstacles/BouncePad";
 import { ChoiceGate } from "./obstacles/ChoiceGate";
 import { SpikeRoller } from "./obstacles/SpikeRoller";
 import { SwingingHammer } from "./obstacles/SwingingHammer";
+import { MechanicalHazard } from "./obstacles/MechanicalHazard";
 import { BlueOrb } from "./pickups/BlueOrb";
+import { OrbChain } from "./pickups/OrbChain";
 import { useBotController, botStep } from "./physics/useBotController";
 import { Environment } from "./worlds/Environment";
 import { Track } from "./worlds/Track";
+import { Effects } from "./Effects";
 
-// Inner game loop component executing within R3F context
+// Inner game loop executing at 60Hz fixed physics step
 const GameLoop: React.FC = () => {
   const tick = useGameStore((state) => state.tick);
-
   const accumulated = useRef(0);
+
   useFrame((_, delta) => {
     accumulated.current += Math.min(delta, 0.25);
     while (accumulated.current >= 1 / 60) {
@@ -31,6 +35,40 @@ const GameLoop: React.FC = () => {
   });
 
   return null;
+};
+
+// Directional sun light that tracks Gloop's Z position so shadows never vanish
+const PlayerTrackingSun: React.FC = () => {
+  const lightRef = useRef<THREE.DirectionalLight>(null);
+  const targetRef = useRef<THREE.Object3D>(null);
+
+  useFrame(() => {
+    const pz = useGameStore.getState().playerZ;
+    if (lightRef.current && targetRef.current) {
+      lightRef.current.position.set(8, 14, pz + 6);
+      targetRef.current.position.set(0, 0, pz - 10);
+      targetRef.current.updateMatrixWorld();
+    }
+  });
+
+  return (
+    <>
+      <object3D ref={targetRef} position={[0, 0, -10]} />
+      <directionalLight
+        ref={lightRef}
+        castShadow
+        position={[8, 14, 6]}
+        intensity={2.4}
+        color="#fff3dc"
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0004}
+        shadow-camera-left={-12}
+        shadow-camera-right={12}
+        shadow-camera-top={12}
+        shadow-camera-bottom={-12}
+      />
+    </>
+  );
 };
 
 interface GameSceneProps {
@@ -59,13 +97,13 @@ export const GameScene: React.FC<GameSceneProps> = ({
       if (
         e.repeat ||
         ["INPUT", "TEXTAREA", "SELECT"].includes(
-          (e.target as HTMLElement).tagName,
+          (e.target as HTMLElement).tagName
         )
       )
         return;
       if (
         ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
-          e.code,
+          e.code
         )
       )
         e.preventDefault();
@@ -106,22 +144,30 @@ export const GameScene: React.FC<GameSceneProps> = ({
     <div className="relative w-full h-full overflow-hidden select-none">
       <Canvas
         ref={canvasRef}
+        flat
         shadows
-        dpr={lowQuality ? 1 : [1, 1.5]} // Performance optimization for retina/mobile displays
-        camera={{ position: [0, 4, 7], fov: 60 }}
+        dpr={lowQuality ? 1 : [1, 2]}
+        camera={{ position: [0, 4, 7], fov: 52, near: 0.1, far: 400 }}
         gl={{
           antialias: true,
-          preserveDrawingBuffer: true, // Crucial for canvas.captureStream() in MediaRecorder!
+          preserveDrawingBuffer: true,
           powerPreference: "high-performance",
         }}
       >
         <GameLoop />
         <GameCamera />
+
+        {/* Dynamic Studio Lighting */}
+        <hemisphereLight args={["#cfeaff", "#ffe9c9", 0.6]} />
+        <PlayerTrackingSun />
+
+        {/* 3D World Environment & Checkered Track */}
         <Environment />
         <Track />
 
-        {/* Characters */}
+        {/* Characters & Visual Effects */}
         <Gloop />
+        <OrbChain />
         <Effects />
         <Pip />
         <Glitchmaker />
@@ -170,10 +216,11 @@ export const GameScene: React.FC<GameSceneProps> = ({
           }
           if (
             ["rotating-barrier", "closing-door", "sliding-block"].includes(
-              obs.type,
+              obs.type
             )
-          )
+          ) {
             return <MechanicalHazard key={obs.id} obstacle={obs} />;
+          }
           return null;
         })}
 
@@ -186,6 +233,15 @@ export const GameScene: React.FC<GameSceneProps> = ({
             value={orb.value}
           />
         ))}
+
+        {/* Post-Processing Render Pipeline (Bloom, Vignette, ToneMapping) */}
+        {!lowQuality && (
+          <EffectComposer multisampling={4}>
+            <Bloom intensity={0.45} luminanceThreshold={0.85} mipmapBlur />
+            <Vignette darkness={0.25} offset={0.3} />
+            <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+          </EffectComposer>
+        )}
       </Canvas>
     </div>
   );
