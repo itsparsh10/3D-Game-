@@ -1,0 +1,71 @@
+import { EpisodeConfig } from '../types/game';
+
+export const EPISODE_PRESETS: EpisodeConfig[] = [
+  {
+    id: 'ep-001',
+    title: 'Can Gloop Collect 20 Orbs?',
+    subtitle: 'Learn the ropes in the sunny Sky Islands. 20 orbs before the golden gate!',
+    world: 'sky-islands',
+    durationSeconds: 30,
+    targetOrbs: 20,
+    difficulty: 'easy',
+    seed: 1001,
+    twist: 'color-gate-choice',
+    allowedHits: 2,
+    mechanics: ['orb-collection', 'swinging-hammer', 'choice-gates', 'finish-portal']
+  },
+  {
+    id: 'ep-002',
+    title: 'One Hit Ends This Run!',
+    subtitle: 'High stakes in Candy World! A single brush with a hazard ends everything.',
+    world: 'candy-world',
+    durationSeconds: 30,
+    targetOrbs: 25,
+    difficulty: 'hard',
+    seed: 2048,
+    twist: 'speed-rush',
+    allowedHits: 0,
+    mechanics: ['orb-collection', 'spike-roller', 'swinging-hammer', 'moving-gap', 'finish-portal']
+  },
+  {
+    id: 'ep-003',
+    title: 'Blue or Red Choice Gates?',
+    subtitle: 'Every gate makes or breaks your score: +5 bonus or -3 penalty!',
+    world: 'sky-islands',
+    durationSeconds: 30,
+    targetOrbs: 22,
+    difficulty: 'medium',
+    seed: 777,
+    twist: 'color-gate-choice',
+    allowedHits: 2,
+    mechanics: ['orb-collection', 'choice-gates', 'bounce-pad', 'finish-portal']
+  },
+  {
+    id: 'ep-004',
+    title: 'Glacial Rush & Giant Hammers',
+    subtitle: 'Slippery speeds on frosted ice with towering swinging hammers.',
+    world: 'ice-world',
+    durationSeconds: 30,
+    targetOrbs: 24,
+    difficulty: 'hard',
+    seed: 4096,
+    twist: 'low-gravity',
+    allowedHits: 1,
+    mechanics: ['orb-collection', 'swinging-hammer', 'bounce-pad', 'finish-portal']
+  },
+  {
+    id: 'ep-005',
+    title: 'Escape the Glitchmaker!',
+    subtitle: 'The floating purple glitch-cube invades the Lava World obstacle course!',
+    world: 'lava-world',
+    durationSeconds: 30,
+    targetOrbs: 20,
+    difficulty: 'chaos',
+    seed: 9999,
+    twist: 'glitchmaker-attack',
+    allowedHits: 1,
+    mechanics: ['orb-collection', 'glitchmaker', 'spike-roller', 'moving-gap', 'finish-portal']
+  }
+];
+
+export const DEFAULT_EPISODE: EpisodeConfig = EPISODE_PRESETS[0];
