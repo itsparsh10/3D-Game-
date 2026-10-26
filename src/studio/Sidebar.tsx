@@ -1,7 +1,16 @@
-import React from 'react';
-import { Bot, Clapperboard, Globe, LayoutDashboard, Settings, Sparkles, User, Video } from 'lucide-react';
-import { useGameStore } from '../store/gameStore';
-import { useStudioStore } from '../store/studioStore';
+import React from "react";
+import {
+  Bot,
+  Clapperboard,
+  Globe,
+  LayoutDashboard,
+  Settings,
+  Sparkles,
+  User,
+  Video,
+} from "lucide-react";
+import { useGameStore } from "../store/gameStore";
+import { useStudioStore } from "../store/studioStore";
 
 export const Sidebar: React.FC = () => {
   const activeTab = useStudioStore((state) => state.activeTab);
@@ -12,11 +21,11 @@ export const Sidebar: React.FC = () => {
   const activeEpisode = useGameStore((state) => state.activeEpisode);
 
   const navItems = [
-    { id: 'studio', label: 'Studio Dashboard', icon: LayoutDashboard },
-    { id: 'episodes', label: 'Episode Library', icon: Clapperboard },
-    { id: 'worlds', label: 'World Themes', icon: Globe },
-    { id: 'recorder', label: 'Shorts Export', icon: Video },
-    { id: 'settings', label: 'Studio Settings', icon: Settings }
+    { id: "studio", label: "Studio Dashboard", icon: LayoutDashboard },
+    { id: "episodes", label: "Episode Library", icon: Clapperboard },
+    { id: "worlds", label: "World Themes", icon: Globe },
+    { id: "recorder", label: "Shorts Export", icon: Video },
+    { id: "settings", label: "Studio Settings", icon: Settings },
   ] as const;
 
   return (
@@ -41,6 +50,9 @@ export const Sidebar: React.FC = () => {
           "One challenge. One run. Thirty seconds."
         </p>
 
+        <a href="/" className="block text-sm text-cyan-300 mb-5">
+          ← Open playable game
+        </a>
         {/* Navigation Tabs */}
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => {
@@ -52,11 +64,13 @@ export const Sidebar: React.FC = () => {
                 onClick={() => setActiveTab(item.id)}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
-                    ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
+                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                    : "text-slate-400 hover:text-white hover:bg-slate-900/60"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
+                <Icon
+                  className={`w-4 h-4 ${isActive ? "text-cyan-400" : "text-slate-500"}`}
+                />
                 {item.label}
               </button>
             );
@@ -76,7 +90,7 @@ export const Sidebar: React.FC = () => {
           </p>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-[10px] bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 px-2 py-0.5 rounded-md font-semibold capitalize">
-              {activeEpisode.world.replace('-', ' ')}
+              {activeEpisode.world.replace("-", " ")}
             </span>
             <span className="text-[10px] text-slate-400 font-mono">
               {activeEpisode.durationSeconds}s · {activeEpisode.targetOrbs} Orbs
@@ -89,8 +103,8 @@ export const Sidebar: React.FC = () => {
           onClick={toggleBotAutoplay}
           className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all ${
             botAutoplay
-              ? 'bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-purple-500/50 text-purple-200'
-              : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850'
+              ? "bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-purple-500/50 text-purple-200"
+              : "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -99,14 +113,18 @@ export const Sidebar: React.FC = () => {
             ) : (
               <User className="w-4 h-4 text-slate-400" />
             )}
-            <span>{botAutoplay ? 'Bot Autoplay (Demo)' : 'Manual Controls'}</span>
+            <span>
+              {botAutoplay ? "Bot Autoplay (Demo)" : "Manual Controls"}
+            </span>
           </div>
           <span
             className={`text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase ${
-              botAutoplay ? 'bg-purple-500/20 text-purple-300' : 'bg-slate-800 text-slate-400'
+              botAutoplay
+                ? "bg-purple-500/20 text-purple-300"
+                : "bg-slate-800 text-slate-400"
             }`}
           >
-            {botAutoplay ? 'BOT' : 'PLAYER'}
+            {botAutoplay ? "BOT" : "PLAYER"}
           </span>
         </button>
       </div>

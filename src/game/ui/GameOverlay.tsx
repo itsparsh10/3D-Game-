@@ -1,7 +1,17 @@
-import React from 'react';
-import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Disc, Flame, Heart, Sparkles, Timer } from 'lucide-react';
-import { useGameStore } from '../../store/gameStore';
-import { useStudioStore } from '../../store/studioStore';
+import React from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  Disc,
+  Flame,
+  Heart,
+  Sparkles,
+  Timer,
+} from "lucide-react";
+import { useGameStore } from "../../store/gameStore";
+import { useStudioStore } from "../../store/studioStore";
 
 export const GameOverlay: React.FC = () => {
   const status = useGameStore((state) => state.status);
@@ -20,19 +30,24 @@ export const GameOverlay: React.FC = () => {
   const triggerJump = useGameStore((state) => state.triggerJump);
   const triggerSlide = useGameStore((state) => state.triggerSlide);
 
-  const showSafeOverlay = useStudioStore((state) => state.settings.showSafeOverlay);
+  const showSafeOverlay = useStudioStore(
+    (state) => state.settings.showSafeOverlay,
+  );
   const viewportMode = useStudioStore((state) => state.settings.viewportMode);
 
   const timeRemaining = Math.max(0, Math.ceil(duration - elapsedTime));
-  const orbProgress = Math.min(100, Math.round((orbsCollected / targetOrbs) * 100));
+  const orbProgress = Math.min(
+    100,
+    Math.round((orbsCollected / targetOrbs) * 100),
+  );
 
   const beatLabels: Record<string, string> = {
-    hook: '1. HOOK',
-    collect: '2. COLLECT',
-    twist: '3. TWIST',
-    'hard-obstacle': '4. HARD OBSTACLE',
-    'final-run': '5. FINAL RUN',
-    result: '6. RESULT'
+    hook: "1. HOOK",
+    collect: "2. COLLECT",
+    twist: "3. TWIST",
+    "hard-obstacle": "4. HARD OBSTACLE",
+    "final-run": "5. FINAL RUN",
+    result: "6. RESULT",
   };
 
   return (
@@ -55,9 +70,9 @@ export const GameOverlay: React.FC = () => {
                 <Heart
                   key={i}
                   className={`w-3.5 h-3.5 ${
-                    i < (allowedHits + 1 - hitsTaken)
-                      ? 'text-rose-500 fill-rose-500'
-                      : 'text-slate-600'
+                    i < allowedHits + 1 - hitsTaken
+                      ? "text-rose-500 fill-rose-500"
+                      : "text-slate-600"
                   }`}
                 />
               ))}
@@ -106,7 +121,7 @@ export const GameOverlay: React.FC = () => {
       </div>
 
       {/* --- BEAT 1 HOOK OVERLAY BANNER (First 3 seconds) --- */}
-      {status === 'running' && activeBeat === 'hook' && (
+      {status === "running" && activeBeat === "hook" && (
         <div className="self-center bg-gradient-to-r from-cyan-600/95 via-sky-500/95 to-cyan-600/95 backdrop-blur-md px-8 py-4 rounded-3xl border-2 border-white/60 shadow-[0_0_35px_rgba(6,182,212,0.6)] animate-pulse text-center">
           <p className="text-xs font-black uppercase tracking-widest text-white/80">
             CHALLENGE OBJECTIVE
@@ -121,7 +136,7 @@ export const GameOverlay: React.FC = () => {
       )}
 
       {/* --- COUNTDOWN OVERLAY --- */}
-      {status === 'countdown' && (
+      {status === "countdown" && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm">
           <div className="text-8xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 via-sky-400 to-blue-600 font-['Fredoka'] animate-ping drop-shadow-[0_0_40px_rgba(34,211,238,0.8)]">
             {countdown}
@@ -130,7 +145,7 @@ export const GameOverlay: React.FC = () => {
       )}
 
       {/* --- YOUTUBE SHORTS SAFE AREA GUIDES --- */}
-      {viewportMode === 'shorts' && showSafeOverlay && (
+      {viewportMode === "shorts" && showSafeOverlay && (
         <div className="absolute inset-0 pointer-events-none border-2 border-dashed border-red-500/20 rounded-2xl flex flex-col justify-between p-6">
           {/* Top Shorts UI Zone (sound name / search) */}
           <div className="text-right text-[10px] text-slate-400/50 uppercase tracking-widest">
@@ -138,9 +153,15 @@ export const GameOverlay: React.FC = () => {
           </div>
           {/* Right side Shorts Action Buttons Area (Like, Comments, Share) */}
           <div className="self-end flex flex-col items-center gap-4 opacity-25 pr-1">
-            <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center text-[10px] text-white">❤️</div>
-            <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center text-[10px] text-white">💬</div>
-            <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center text-[10px] text-white">↗️</div>
+            <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center text-[10px] text-white">
+              ❤️
+            </div>
+            <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center text-[10px] text-white">
+              💬
+            </div>
+            <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center text-[10px] text-white">
+              ↗️
+            </div>
             <Disc className="w-7 h-7 text-white animate-spin" />
           </div>
           {/* Bottom Title & Channel Area */}

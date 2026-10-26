@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useGameStore } from '../../store/gameStore';
+import React, { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { useGameStore } from "../../store/gameStore";
 
 interface SpikeRollerProps {
   id: string;
@@ -12,7 +12,7 @@ interface SpikeRollerProps {
 export const SpikeRoller: React.FC<SpikeRollerProps> = ({
   id,
   position,
-  rotationSpeed = 3.0
+  rotationSpeed = 3.0,
 }) => {
   const rollerRef = useRef<THREE.Group>(null);
   const playerY = useGameStore((state) => state.playerY);
@@ -23,17 +23,8 @@ export const SpikeRoller: React.FC<SpikeRollerProps> = ({
 
   useFrame((state) => {
     if (!rollerRef.current) return;
-    const t = state.clock.getElapsedTime();
-    rollerRef.current.rotation.x = -t * rotationSpeed;
-
-    // Check collision: if player is within Z window (~0.9 units) and hasn't jumped over (playerY < 0.7)
-    const dz = Math.abs(playerZ - position[2]);
-    if (!hasCollided && dz < 0.9) {
-      if (playerY < 0.65) {
-        setHasCollided(true);
-        hitObstacle(id);
-      }
-    }
+    rollerRef.current.rotation.x =
+      -useGameStore.getState().elapsedTime * rotationSpeed;
   });
 
   return (
@@ -53,7 +44,11 @@ export const SpikeRoller: React.FC<SpikeRollerProps> = ({
         {/* Central Core Axle */}
         <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
           <cylinderGeometry args={[0.3, 0.3, 7.2, 16]} />
-          <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.7} />
+          <meshStandardMaterial
+            color="#1e293b"
+            roughness={0.3}
+            metalness={0.7}
+          />
         </mesh>
 
         {/* Spike Rings */}
@@ -69,7 +64,11 @@ export const SpikeRoller: React.FC<SpikeRollerProps> = ({
                   castShadow
                 >
                   <coneGeometry args={[0.15, 0.4, 10]} />
-                  <meshStandardMaterial color="#f97316" roughness={0.3} metalness={0.4} />
+                  <meshStandardMaterial
+                    color="#f97316"
+                    roughness={0.3}
+                    metalness={0.4}
+                  />
                 </mesh>
               );
             })}

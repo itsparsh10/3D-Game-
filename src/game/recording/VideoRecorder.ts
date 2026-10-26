@@ -1,117 +1,127 @@
-import { SoundManager } from '../audio/SoundManager';
-import { useStudioStore } from '../../store/studioStore';
-
+import { SoundManager } from "../audio/SoundManager";
+import { useStudioStore } from "../../store/studioStore";
+import { useGameStore } from "../../store/gameStore";
+export interface RunMetadata {
+  episode: ReturnType<typeof useGameStore.getState>["activeEpisode"];
+  result: string;
+  orbs: number;
+  score: number;
+  events: ReturnType<typeof useGameStore.getState>["events"];
+  duration: number;
+  landscape: boolean;
+}
 class VideoRecorderEngine {
-  private mediaRecorder: MediaRecorder | null = null;
-  private recordedChunks: Blob[] = [];
-  private startTime = 0;
-
-  /** Checks supported mime types on current browser */
-  private getSupportedMimeType(): string {
-    const types = [
-      'video/webm;codecs=vp9,opus',
-      'video/webm;codecs=vp8,opus',
-      'video/webm',
-      'video/mp4'
-    ];
-    for (const type of types) {
-      if (MediaRecorder.isTypeSupported(type)) {
-        return type;
-      }
-    }
-    return '';
-  }
-
-  /** Starts recording the 3D Canvas stream + Procedural Audio */
-  public startRecording(canvas: HTMLCanvasElement, fps: number = 30) {
+  private recorder: MediaRecorder | null = null;
+  private frame = 0;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+  private unsubscribe: (() => void) | null = null;
+  metadata: RunMetadata | null = null;
+  startRecording(canvas: HTMLCanvasElement, fps = 30) {
     try {
-      const mimeType = this.getSupportedMimeType();
-      if (!mimeType) {
-        useStudioStore.getState().setRecordingState({
-          error: 'Browser does not support MediaRecorder canvas stream capture.'
-        });
-        return false;
-      }
-
-      // Capture 30 or 60 FPS from Three.js canvas
-      const videoStream = canvas.captureStream(fps);
-      const audioStream = SoundManager.getAudioStream();
-
-      // Combine video + procedural audio into one unified MediaStream
-      const combinedStream = new MediaStream();
-      videoStream.getVideoTracks().forEach((track) => combinedStream.addTrack(track));
-      if (audioStream) {
-        audioStream.getAudioTracks().forEach((track) => combinedStream.addTrack(track));
-      }
-
-      this.recordedChunks = [];
-      this.startTime = Date.now();
-
-      this.mediaRecorder = new MediaRecorder(combinedStream, {
-        mimeType,
-        videoBitsPerSecond: 6_000_000 // 6 Mbps high quality
-      });
-
-      this.mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          this.recordedChunks.push(event.data);
-        }
+      if (this.recorder?.state === "recording") return false;
+      SoundManager.getAudioStream();
+      SoundManager.resume();
+      const mime = [
+        "video/webm;codecs=vp8,opus",
+        "video/webm",
+        "video/mp4",
+      ].find((t) => MediaRecorder.isTypeSupported(t));
+      if (!mime) throw Error("This browser cannot record video.");
+      const output = document.createElement("canvas");
+      const landscape = canvas.clientWidth > canvas.clientHeight;
+      output.width = landscape ? 1920 : 1080;
+      output.height = landscape ? 1080 : 1920;
+      const ctx = output.getContext("2d")!;
+      const draw = () => {
+        ctx.drawImage(canvas, 0, 0, output.width, output.height);
+        this.frame = requestAnimationFrame(draw);
       };
-
-      this.mediaRecorder.onstop = () => {
-        const finalBlob = new Blob(this.recordedChunks, { type: mimeType });
-        const videoUrl = URL.createObjectURL(finalBlob);
-        const durationMs = Date.now() - this.startTime;
-
-        useStudioStore.getState().setRecordingState({
-          isRecording: false,
-          recordedBlob: finalBlob,
-          videoUrl,
-          durationMs,
-          fileSizeBytes: finalBlob.size,
-          error: null
-        });
-
-        useStudioStore.getState().addLogEvent({
-          beat: 'RECORDER',
-          type: 'victory',
-          message: `Recorded vertical Short: ${(finalBlob.size / (1024 * 1024)).toFixed(2)} MB (${(durationMs / 1000).toFixed(1)}s)`
-        });
+      draw();
+      const video = output.captureStream(fps);
+      const audio = SoundManager.getAudioStream();
+      const stream = new MediaStream([
+        ...video.getVideoTracks(),
+        ...(audio?.getAudioTracks() || []),
+      ]);
+      const chunks: Blob[] = [];
+      const started = performance.now();
+      this.metadata = null;
+      this.recorder = new MediaRecorder(stream, {
+        mimeType: mime,
+        videoBitsPerSecond: 8_000_000,
+      });
+      this.recorder.ondataavailable = (e) => {
+        if (e.data.size) chunks.push(e.data);
       };
-
-      this.mediaRecorder.start(250); // Emit chunk every 250ms
-      useStudioStore.getState().setRecordingState({
-        isRecording: true,
-        recordedBlob: null,
-        videoUrl: null,
-        durationMs: 0,
-        fileSizeBytes: 0,
-        error: null
+      this.recorder.onerror = () => {
+        useStudioStore
+          .getState()
+          .setRecordingState({
+            error: "Browser recording failed.",
+            isRecording: false,
+          });
+        this.stopRecording();
+      };
+      this.recorder.onstop = () => {
+        cancelAnimationFrame(this.frame);
+        video.getTracks().forEach((t) => t.stop());
+        this.unsubscribe?.();
+        if (this.timer) clearTimeout(this.timer);
+        const duration = (performance.now() - started) / 1000;
+        const s = useGameStore.getState();
+        this.metadata = {
+          episode: s.activeEpisode,
+          result: s.status,
+          orbs: s.orbsCollected,
+          score: s.score,
+          events: s.events,
+          duration,
+          landscape,
+        };
+        const blob = new Blob(chunks, { type: mime });
+        const old = useStudioStore.getState().recording.videoUrl;
+        if (old) URL.revokeObjectURL(old);
+        useStudioStore
+          .getState()
+          .setRecordingState({
+            isRecording: false,
+            recordedBlob: blob,
+            videoUrl: URL.createObjectURL(blob),
+            durationMs: duration * 1000,
+            fileSizeBytes: blob.size,
+            error: null,
+          });
+        try {
+          localStorage.setItem("gloop-last-run", JSON.stringify(this.metadata));
+        } catch {}
+      };
+      this.recorder.start(250);
+      useStudioStore
+        .getState()
+        .setRecordingState({
+          isRecording: true,
+          error: null,
+          videoUrl: null,
+          recordedBlob: null,
+        });
+      this.unsubscribe = useGameStore.subscribe((s, prev) => {
+        if (
+          s.status !== prev.status &&
+          ["victory", "defeat"].includes(s.status)
+        )
+          this.timer = setTimeout(() => this.stopRecording(), 2000);
       });
-
-      useStudioStore.getState().addLogEvent({
-        beat: 'RECORDER',
-        type: 'info',
-        message: `Started recording 9:16 vertical Short at ${fps} FPS.`
-      });
-
       return true;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      useStudioStore.getState().setRecordingState({
-        isRecording: false,
-        error: `Recording initialization failed: ${message}`
-      });
+    } catch (e) {
+      useStudioStore
+        .getState()
+        .setRecordingState({ isRecording: false, error: String(e) });
       return false;
     }
   }
-
-  /** Stops recording and triggers blob generation */
-  public stopRecording() {
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      this.mediaRecorder.stop();
-    }
+  stopRecording() {
+    if (this.recorder && this.recorder.state !== "inactive")
+      this.recorder.stop();
   }
 }
-
 export const VideoRecorder = new VideoRecorderEngine();

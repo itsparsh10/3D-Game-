@@ -1,12 +1,17 @@
-import { create } from 'zustand';
-import { SoundManager } from '../game/audio/SoundManager';
-import { RecordingState, StudioLogEvent, StudioSettings, ViewportMode } from '../types/studio';
+import { create } from "zustand";
+import { SoundManager } from "../game/audio/SoundManager";
+import {
+  RecordingState,
+  StudioLogEvent,
+  StudioSettings,
+  ViewportMode,
+} from "../types/studio";
 
 interface StudioStoreState {
   settings: StudioSettings;
   recording: RecordingState;
   events: StudioLogEvent[];
-  activeTab: 'studio' | 'episodes' | 'worlds' | 'recorder' | 'settings';
+  activeTab: "studio" | "episodes" | "worlds" | "recorder" | "settings";
 
   setViewportMode: (mode: ViewportMode) => void;
   toggleSafeOverlay: () => void;
@@ -15,14 +20,16 @@ interface StudioStoreState {
   setSfxVolume: (vol: number) => void;
   toggleMute: () => void;
   setRecordingState: (state: Partial<RecordingState>) => void;
-  addLogEvent: (event: Omit<StudioLogEvent, 'id' | 'timestamp'>) => void;
+  addLogEvent: (event: Omit<StudioLogEvent, "id" | "timestamp">) => void;
   clearLogEvents: () => void;
-  setActiveTab: (tab: 'studio' | 'episodes' | 'worlds' | 'recorder' | 'settings') => void;
+  setActiveTab: (
+    tab: "studio" | "episodes" | "worlds" | "recorder" | "settings",
+  ) => void;
 }
 
 export const useStudioStore = create<StudioStoreState>((set, get) => ({
   settings: {
-    viewportMode: 'shorts', // Default to 9:16 vertical Shorts preview!
+    viewportMode: "shorts", // Default to 9:16 vertical Shorts preview!
     showSafeOverlay: true,
     botAutoplay: false,
     bgmVolume: 0.45,
@@ -30,7 +37,7 @@ export const useStudioStore = create<StudioStoreState>((set, get) => ({
     muted: false,
     cameraTilt: true,
     recordingFps: 30,
-    recordWithAudio: true
+    recordWithAudio: true,
   },
   recording: {
     isRecording: false,
@@ -39,30 +46,34 @@ export const useStudioStore = create<StudioStoreState>((set, get) => ({
     videoUrl: null,
     durationMs: 0,
     fileSizeBytes: 0,
-    error: null
+    error: null,
   },
   events: [
     {
-      id: 'init-1',
-      timestamp: '00:00',
-      beat: 'SYSTEM',
-      type: 'system',
-      message: "Gloop's Glitch Lab Studio initialized. Ready for 9:16 Shorts run."
-    }
+      id: "init-1",
+      timestamp: "00:00",
+      beat: "SYSTEM",
+      type: "system",
+      message:
+        "Gloop's Glitch Lab Studio initialized. Ready for 9:16 Shorts run.",
+    },
   ],
-  activeTab: 'studio',
+  activeTab: "studio",
 
   setViewportMode: (mode) =>
     set((state) => ({ settings: { ...state.settings, viewportMode: mode } })),
 
   toggleSafeOverlay: () =>
     set((state) => ({
-      settings: { ...state.settings, showSafeOverlay: !state.settings.showSafeOverlay }
+      settings: {
+        ...state.settings,
+        showSafeOverlay: !state.settings.showSafeOverlay,
+      },
     })),
 
   toggleBotAutoplay: () =>
     set((state) => ({
-      settings: { ...state.settings, botAutoplay: !state.settings.botAutoplay }
+      settings: { ...state.settings, botAutoplay: !state.settings.botAutoplay },
     })),
 
   setBgmVolume: (vol) => {
@@ -89,21 +100,21 @@ export const useStudioStore = create<StudioStoreState>((set, get) => ({
 
   addLogEvent: (event) => {
     const now = new Date();
-    const ts = `${now.getMinutes().toString().padStart(2, '0')}:${now
+    const ts = `${now.getMinutes().toString().padStart(2, "0")}:${now
       .getSeconds()
       .toString()
-      .padStart(2, '0')}`;
+      .padStart(2, "0")}`;
     const newEntry: StudioLogEvent = {
       ...event,
       id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      timestamp: ts
+      timestamp: ts,
     };
     set((state) => ({
-      events: [newEntry, ...state.events.slice(0, 49)]
+      events: [newEntry, ...state.events.slice(0, 49)],
     }));
   },
 
   clearLogEvents: () => set({ events: [] }),
 
-  setActiveTab: (tab) => set({ activeTab: tab })
+  setActiveTab: (tab) => set({ activeTab: tab }),
 }));

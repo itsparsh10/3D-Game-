@@ -1,7 +1,7 @@
-import React from 'react';
-import { useFrame } from '@react-three/fiber';
-import { useGameStore } from '../../store/gameStore';
-import { SoundManager } from '../audio/SoundManager';
+import React from "react";
+import { useFrame } from "@react-three/fiber";
+import { useGameStore } from "../../store/gameStore";
+import { SoundManager } from "../audio/SoundManager";
 
 interface BouncePadProps {
   id: string;
@@ -14,19 +14,6 @@ export const BouncePad: React.FC<BouncePadProps> = ({ position }) => {
   const triggerJump = useGameStore((state) => state.triggerJump);
 
   const [hasBounced, setHasBounced] = React.useState(false);
-
-  useFrame(() => {
-    if (hasBounced) return;
-
-    // Trigger bounce when within pad radius
-    const dx = Math.abs(playerX - position[0]);
-    const dz = Math.abs(playerZ - position[2]);
-    if (dx < 1.2 && dz < 1.0) {
-      setHasBounced(true);
-      SoundManager.playBouncePad();
-      triggerJump(22); // Super high launch!
-    }
-  });
 
   return (
     <group position={position}>

@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
-import { Check, Copy, Download, Film, Sparkles, Video, Youtube } from 'lucide-react';
-import { useGameStore } from '../store/gameStore';
-import { useStudioStore } from '../store/studioStore';
+import { ExportPanel } from "./ExportPanel";
+import React, { useState } from "react";
+import {
+  Check,
+  Copy,
+  Download,
+  Film,
+  Sparkles,
+  Video,
+  Youtube,
+} from "lucide-react";
+import { useGameStore } from "../store/gameStore";
+import { useStudioStore } from "../store/studioStore";
 
 export const RecorderModal: React.FC = () => {
   const recording = useStudioStore((state) => state.recording);
@@ -18,10 +27,12 @@ export const RecorderModal: React.FC = () => {
 
   const handleDownload = () => {
     if (!recording.videoUrl) return;
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = recording.videoUrl;
-    const sanitizedTitle = activeEpisode.title.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    a.download = `gloop_short_${sanitizedTitle}.webm`;
+    const sanitizedTitle = activeEpisode.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "_");
+    a.download = `gloop_short_${sanitizedTitle}.${recording.recordedBlob?.type.includes("mp4") ? "mp4" : "webm"}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -36,7 +47,8 @@ export const RecorderModal: React.FC = () => {
               YouTube Shorts Recording & Export
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Recorded in 9:16 vertical viewport with synchronized 3D graphics & audio.
+              Recorded in 9:16 vertical viewport with synchronized 3D graphics &
+              audio.
             </p>
           </div>
           <span className="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
@@ -45,6 +57,7 @@ export const RecorderModal: React.FC = () => {
           </span>
         </div>
 
+        <ExportPanel />
         {/* --- MAIN PREVIEW & CONTROLS --- */}
         {recording.videoUrl ? (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -72,21 +85,33 @@ export const RecorderModal: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[11px]">Episode Title</span>
-                    <span className="text-white font-bold">{activeEpisode.title}</span>
+                    <span className="text-slate-400 block text-[11px]">
+                      Episode Title
+                    </span>
+                    <span className="text-white font-bold">
+                      {activeEpisode.title}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">Duration</span>
+                    <span className="text-slate-400 block text-[11px]">
+                      Duration
+                    </span>
                     <span className="text-cyan-300 font-mono font-bold">
                       {(recording.durationMs / 1000).toFixed(1)} seconds
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">Aspect Ratio</span>
-                    <span className="text-white font-mono font-bold">9:16 Vertical</span>
+                    <span className="text-slate-400 block text-[11px]">
+                      Aspect Ratio
+                    </span>
+                    <span className="text-white font-mono font-bold">
+                      9:16 Vertical
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">File Size</span>
+                    <span className="text-slate-400 block text-[11px]">
+                      File Size
+                    </span>
                     <span className="text-amber-300 font-mono font-bold">
                       {(recording.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB
                     </span>
@@ -136,7 +161,8 @@ export const RecorderModal: React.FC = () => {
                   Ready-to-Post Shorts Title & Tags:
                 </span>
                 <p className="text-cyan-300 font-medium select-all">
-                  {activeEpisode.title} 🏃‍♂️💨 | Gloop's Glitch Lab #Shorts #Gaming #3DRunner
+                  {activeEpisode.title} 🏃‍♂️💨 | Gloop's Glitch Lab #Shorts
+                  #Gaming #3DRunner
                 </p>
               </div>
             </div>
@@ -151,8 +177,11 @@ export const RecorderModal: React.FC = () => {
               No Recording Generated Yet
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed mb-6">
-              Head to the <strong>Studio Dashboard</strong>, configure your episode challenge, and click{' '}
-              <strong className="text-rose-400">"Record YouTube Short"</strong>. The studio will capture the complete 30-second run with audio in vertical 9:16 format!
+              Head to the <strong>Studio Dashboard</strong>, configure your
+              episode challenge, and click{" "}
+              <strong className="text-rose-400">"Record YouTube Short"</strong>.
+              The studio will capture the complete 30-second run with audio in
+              vertical 9:16 format!
             </p>
           </div>
         )}

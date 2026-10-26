@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useGameStore } from '../../store/gameStore';
+import React, { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { useGameStore } from "../../store/gameStore";
 
 export const Pip: React.FC = () => {
   const pipRef = useRef<THREE.Group>(null);
@@ -28,7 +28,7 @@ export const Pip: React.FC = () => {
     pipRef.current.rotation.z = Math.sin(t * 3) * 0.15;
 
     // React to beats
-    if (activeBeat === 'result') {
+    if (activeBeat === "result") {
       pipRef.current.scale.setScalar(1.3 + Math.sin(t * 10) * 0.2);
     } else {
       pipRef.current.scale.setScalar(1.0);

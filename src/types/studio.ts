@@ -1,4 +1,4 @@
-export type ViewportMode = 'shorts' | 'desktop' | 'cinematic';
+export type ViewportMode = "shorts" | "desktop" | "cinematic";
 
 export interface StudioSettings {
   viewportMode: ViewportMode;
@@ -26,6 +26,7 @@ export interface StudioLogEvent {
   id: string;
   timestamp: string;
   beat: string;
-  type: 'info' | 'pickup' | 'choice' | 'obstacle' | 'victory' | 'defeat' | 'system';
+  type:
+    "info" | "pickup" | "choice" | "obstacle" | "victory" | "defeat" | "system";
   message: string;
 }

@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
-import confetti from 'canvas-confetti';
-import { Award, RotateCcw, Share2, Sparkles, Video } from 'lucide-react';
-import { useGameStore } from '../../store/gameStore';
-import { useStudioStore } from '../../store/studioStore';
+import React, { useEffect } from "react";
+import confetti from "canvas-confetti";
+import { Award, RotateCcw, Share2, Sparkles, Video } from "lucide-react";
+import { useGameStore } from "../../store/gameStore";
+import { useStudioStore } from "../../store/studioStore";
 
 export const VictoryModal: React.FC = () => {
+  const hits = useGameStore((s) => s.hitsTaken);
   const status = useGameStore((state) => state.status);
   const score = useGameStore((state) => state.score);
   const orbsCollected = useGameStore((state) => state.orbsCollected);
@@ -17,13 +18,13 @@ export const VictoryModal: React.FC = () => {
   const setActiveTab = useStudioStore((state) => state.setActiveTab);
 
   useEffect(() => {
-    if (status === 'victory') {
+    if (status === "victory") {
       // Fire vibrant victory confetti cannon!
       confetti({
         particleCount: 80,
         spread: 90,
         origin: { y: 0.6 },
-        colors: ['#06b6d4', '#f59e0b', '#3b82f6', '#ec4899', '#ffffff']
+        colors: ["#06b6d4", "#f59e0b", "#3b82f6", "#ec4899", "#ffffff"],
       });
 
       const timeout = setTimeout(() => {
@@ -32,14 +33,14 @@ export const VictoryModal: React.FC = () => {
           angle: 60,
           spread: 60,
           origin: { x: 0 },
-          colors: ['#06b6d4', '#f59e0b', '#38bdf8']
+          colors: ["#06b6d4", "#f59e0b", "#38bdf8"],
         });
         confetti({
           particleCount: 50,
           angle: 120,
           spread: 60,
           origin: { x: 1 },
-          colors: ['#06b6d4', '#f59e0b', '#38bdf8']
+          colors: ["#06b6d4", "#f59e0b", "#38bdf8"],
         });
       }, 350);
 
@@ -47,7 +48,7 @@ export const VictoryModal: React.FC = () => {
     }
   }, [status]);
 
-  if (status !== 'victory') return null;
+  if (status !== "victory") return null;
 
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
@@ -99,7 +100,8 @@ export const VictoryModal: React.FC = () => {
               STATUS
             </span>
             <span className="text-xs font-extrabold text-emerald-400 flex items-center gap-1 mt-1">
-              <Sparkles className="w-3.5 h-3.5" /> 100% CLEAN
+              <Sparkles className="w-3.5 h-3.5" />{" "}
+              {hits === 0 ? "CLEAN RUN" : `${hits} HITS`}
             </span>
           </div>
         </div>
@@ -108,7 +110,7 @@ export const VictoryModal: React.FC = () => {
         <div className="flex flex-col gap-2.5">
           {recordedBlob && (
             <button
-              onClick={() => setActiveTab('recorder')}
+              onClick={() => setActiveTab("recorder")}
               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white font-bold text-sm shadow-[0_0_15px_rgba(244,63,94,0.4)] flex items-center justify-center gap-2 transition-all active:scale-95"
             >
               <Video className="w-4 h-4" />

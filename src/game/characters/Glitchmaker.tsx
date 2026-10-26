@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useGameStore } from '../../store/gameStore';
+import React, { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { useGameStore } from "../../store/gameStore";
 
 export const Glitchmaker: React.FC = () => {
   const cubeRef = useRef<THREE.Group>(null);
@@ -11,7 +11,10 @@ export const Glitchmaker: React.FC = () => {
   const activeBeat = useGameStore((state) => state.activeBeat);
   const twist = useGameStore((state) => state.activeEpisode.twist);
 
-  const isVisible = twist === 'glitchmaker-attack' || activeBeat === 'twist' || activeBeat === 'hard-obstacle';
+  const isVisible =
+    twist === "glitchmaker-attack" ||
+    activeBeat === "twist" ||
+    activeBeat === "hard-obstacle";
 
   useFrame((state) => {
     if (!cubeRef.current) return;
@@ -21,7 +24,7 @@ export const Glitchmaker: React.FC = () => {
     cubeRef.current.position.set(
       Math.sin(t * 2.5) * 2.0,
       2.6 + Math.cos(t * 3.5) * 0.35,
-      playerZ - 18
+      playerZ - 18,
     );
 
     cubeRef.current.rotation.x = t * 0.8;
@@ -65,11 +68,15 @@ export const Glitchmaker: React.FC = () => {
           [-0.8, 0.4, 0.5],
           [0.9, -0.3, -0.4],
           [0.3, 0.9, -0.6],
-          [-0.5, -0.8, 0.3]
+          [-0.5, -0.8, 0.3],
         ].map((pos, idx) => (
           <mesh key={idx} position={pos as [number, number, number]}>
             <boxGeometry args={[0.2, 0.2, 0.2]} />
-            <meshStandardMaterial color="#ec4899" emissive="#f43f5e" emissiveIntensity={0.8} />
+            <meshStandardMaterial
+              color="#ec4899"
+              emissive="#f43f5e"
+              emissiveIntensity={0.8}
+            />
           </mesh>
         ))}
       </group>

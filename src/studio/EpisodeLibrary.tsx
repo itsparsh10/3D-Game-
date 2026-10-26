@@ -1,9 +1,9 @@
-import React from 'react';
-import { Check, Play, Sparkles } from 'lucide-react';
-import { EPISODE_PRESETS } from '../config/episodes';
-import { useGameStore } from '../store/gameStore';
-import { useStudioStore } from '../store/studioStore';
-import { EpisodeConfig } from '../types/game';
+import React from "react";
+import { Check, Play, Sparkles } from "lucide-react";
+import { EPISODE_PRESETS } from "../config/episodes";
+import { useGameStore } from "../store/gameStore";
+import { useStudioStore } from "../store/studioStore";
+import { EpisodeConfig } from "../types/game";
 
 export const EpisodeLibrary: React.FC = () => {
   const activeEpisode = useGameStore((state) => state.activeEpisode);
@@ -12,7 +12,7 @@ export const EpisodeLibrary: React.FC = () => {
 
   const handleSelectEpisode = (ep: EpisodeConfig) => {
     setEpisode(ep);
-    setActiveTab('studio');
+    setActiveTab("studio");
   };
 
   return (
@@ -23,7 +23,8 @@ export const EpisodeLibrary: React.FC = () => {
             Episode Library
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Choose from curated challenge episodes designed for viral YouTube Shorts.
+            Choose from curated challenge episodes designed for viral YouTube
+            Shorts.
           </p>
         </div>
 
@@ -35,8 +36,8 @@ export const EpisodeLibrary: React.FC = () => {
                 key={ep.id}
                 className={`bg-slate-900/80 border rounded-2xl p-5 flex flex-col justify-between transition-all ${
                   isActive
-                    ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-                    : 'border-slate-800 hover:border-slate-700'
+                    ? "border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                    : "border-slate-800 hover:border-slate-700"
                 }`}
               >
                 <div>
@@ -45,7 +46,7 @@ export const EpisodeLibrary: React.FC = () => {
                       EP {idx + 1 < 10 ? `00${idx + 1}` : `0${idx + 1}`}
                     </span>
                     <span className="text-[10px] font-extrabold uppercase bg-cyan-950 text-cyan-400 border border-cyan-800/60 px-2 py-0.5 rounded-full capitalize">
-                      {ep.world.replace('-', ' ')}
+                      {ep.world.replace("-", " ")}
                     </span>
                   </div>
 
@@ -73,13 +74,14 @@ export const EpisodeLibrary: React.FC = () => {
                   onClick={() => handleSelectEpisode(ep)}
                   className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                     isActive
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                      : 'bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-white'
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                      : "bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-white"
                   }`}
                 >
                   {isActive ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-cyan-400" /> Active in Studio
+                      <Check className="w-3.5 h-3.5 text-cyan-400" /> Active in
+                      Studio
                     </>
                   ) : (
                     <>

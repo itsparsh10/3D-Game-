@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useGameStore } from '../../store/gameStore';
+import React, { useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+import { useGameStore } from "../../store/gameStore";
 
 export const GameCamera: React.FC = () => {
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const playerX = useGameStore((state) => state.playerX);
   const playerY = useGameStore((state) => state.playerY);
   const playerZ = useGameStore((state) => state.playerZ);
@@ -19,13 +19,21 @@ export const GameCamera: React.FC = () => {
 
     // Default chase camera offset: 3.5 units above, 6.5 units behind
     let targetX = playerX * 0.45;
-    let targetY = playerY * 0.4 + 3.4;
-    let targetZ = playerZ + 6.2;
+    let targetY = playerY * 0.25 + 4.4;
+    let targetZ = playerZ + (size.width < size.height ? 8.5 : 7.5);
 
     let lookAtX = playerX * 0.7;
     let lookAtY = playerY * 0.5 + 1.2;
     let lookAtZ = playerZ - 9; // Look ahead into the track
 
+    if (status === "idle") {
+      targetX = size.width > size.height ? -6 : -4;
+      targetY = 3.2;
+      targetZ = 7;
+      lookAtX = 1;
+      lookAtY = size.width < size.height ? 2.3 : 1.1;
+      lookAtZ = -1;
+    }
     // Camera shake calculation
     if (shakeIntensity > 0.01) {
       const shakeX = (Math.random() - 0.5) * shakeIntensity * 0.4;
@@ -35,7 +43,7 @@ export const GameCamera: React.FC = () => {
     }
 
     // Victory cinematic orbit!
-    if (status === 'victory') {
+    if (status === "victory") {
       const orbitRadius = 4.0;
       targetX = playerX + Math.sin(t * 1.5) * orbitRadius;
       targetY = playerY + 2.0;
@@ -60,9 +68,13 @@ export const GameCamera: React.FC = () => {
     camera.lookAt(currentLookAt.current);
 
     // Subtle lane-switch roll tilt
-    if (status === 'running') {
+    if (status === "running") {
       const rollTilt = (targetX - currentCamPos.current.x) * -0.05;
-      camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z, rollTilt, delta * 10);
+      camera.rotation.z = THREE.MathUtils.lerp(
+        camera.rotation.z,
+        rollTilt,
+        delta * 10,
+      );
     }
   });
 

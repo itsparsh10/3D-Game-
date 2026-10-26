@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useGameStore } from '../../store/gameStore';
+import React, { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { useGameStore } from "../../store/gameStore";
 
 interface BlueOrbProps {
   id: string;
@@ -25,28 +25,25 @@ export const BlueOrb: React.FC<BlueOrbProps> = ({ id, position, value }) => {
 
     const t = state.clock.getElapsedTime();
     // Gentle bobbing and spinning
-    meshRef.current.position.y = position[1] + Math.sin(t * 4 + position[2] * 0.1) * 0.12;
+    meshRef.current.position.y =
+      position[1] + Math.sin(t * 4 + position[2] * 0.1) * 0.12;
     meshRef.current.rotation.y = t * 2.5;
 
     if (ringRef.current) {
       ringRef.current.rotation.x = t * 3;
       ringRef.current.rotation.z = t * 2;
     }
-
-    // Distance-based collection detection
-    const dx = playerX - position[0];
-    const dy = playerY + 0.5 - meshRef.current.position.y;
-    const dz = playerZ - position[2];
-    const distSq = dx * dx + dy * dy + dz * dz;
-
-    // Collect radius ~ 1.4 units
-    if (distSq < 1.96) {
-      setCollected(true);
-      collectOrb(id, value);
-    }
   });
 
-  if (collected) return null;
+  const orb = useGameStore((s) => s.levelData.orbs.find((o) => o.id === id));
+  if (
+    orb?.collected ||
+    position[2] > playerZ + 8 ||
+    position[2] < playerZ - 115
+  )
+    return null;
+  const color =
+    value === 2 ? "#ffc637" : position[0] > 1 ? "#ff535d" : "#00cbea";
 
   return (
     <group ref={meshRef} position={position}>
@@ -54,9 +51,9 @@ export const BlueOrb: React.FC<BlueOrbProps> = ({ id, position, value }) => {
       <mesh castShadow>
         <sphereGeometry args={[0.32, 24, 24]} />
         <meshStandardMaterial
-          color="#38bdf8"
-          emissive="#0284c7"
-          emissiveIntensity={0.85}
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.25}
           roughness={0.1}
           metalness={0.2}
         />
@@ -73,9 +70,6 @@ export const BlueOrb: React.FC<BlueOrbProps> = ({ id, position, value }) => {
         <torusGeometry args={[0.42, 0.025, 8, 24]} />
         <meshBasicMaterial color="#7dd3fc" />
       </mesh>
-
-      {/* Point light for magical glow */}
-      <pointLight color="#38bdf8" intensity={0.8} distance={2.5} decay={2} />
     </group>
   );
 };

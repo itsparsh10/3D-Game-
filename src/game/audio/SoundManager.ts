@@ -4,6 +4,25 @@
  * Fully routable to MediaStreamDestination for video recording with synchronized audio.
  */
 class SoundManagerClass {
+  private masterVolume = 1;
+  private externalMusic: AudioBuffer | null = null;
+  private externalSource: AudioBufferSourceNode | null = null;
+  public setMasterVolume(value: number) {
+    this.masterVolume = Math.max(0, Math.min(1, value));
+    if (this.ctx && this.masterGain)
+      this.masterGain.gain.setTargetAtTime(
+        this.isMuted ? 0 : this.masterVolume,
+        this.ctx.currentTime,
+        0.05,
+      );
+  }
+  public async loadMusic(file: File) {
+    this.initContext();
+    if (!this.ctx) throw Error("Audio is unavailable in this browser.");
+    this.externalMusic = await this.ctx.decodeAudioData(
+      await file.arrayBuffer(),
+    );
+  }
   private ctx: AudioContext | null = null;
   private bgmGain: GainNode | null = null;
   private sfxGain: GainNode | null = null;
@@ -20,11 +39,18 @@ class SoundManagerClass {
 
   private initContext() {
     if (this.ctx) return;
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    if (!AudioContextClass) return;
     this.ctx = new AudioContextClass();
 
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 1, this.ctx.currentTime);
+    this.masterGain.gain.setValueAtTime(
+      this.isMuted ? 0 : this.masterVolume,
+      this.ctx.currentTime,
+    );
 
     this.bgmGain = this.ctx.createGain();
     this.bgmGain.gain.setValueAtTime(this.bgmVolume, this.ctx.currentTime);
@@ -46,7 +72,7 @@ class SoundManagerClass {
   }
 
   public resume() {
-    if (this.ctx && this.ctx.state === 'suspended') {
+    if (this.ctx && this.ctx.state === "suspended") {
       this.ctx.resume();
     }
   }
@@ -58,7 +84,11 @@ class SoundManagerClass {
 
     if (this.ctx && this.masterGain && this.bgmGain && this.sfxGain) {
       const now = this.ctx.currentTime;
-      this.masterGain.gain.setTargetAtTime(muted ? 0 : 1, now, 0.05);
+      this.masterGain.gain.setTargetAtTime(
+        muted ? 0 : this.masterVolume,
+        now,
+        0.05,
+      );
       this.bgmGain.gain.setTargetAtTime(bgm, now, 0.05);
       this.sfxGain.gain.setTargetAtTime(sfx, now, 0.05);
     }
@@ -80,7 +110,7 @@ class SoundManagerClass {
     const notes = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5]; // C5, D5, E5, G5, A5, C6
     const freq = notes[combo % notes.length];
 
-    osc.type = 'triangle';
+    osc.type = "triangle";
     osc.frequency.setValueAtTime(freq, now);
     osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.12);
 
@@ -104,7 +134,7 @@ class SoundManagerClass {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(220, now);
     osc.frequency.exponentialRampToValueAtTime(580, now + 0.15);
 
@@ -128,7 +158,7 @@ class SoundManagerClass {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(160, now);
     osc.frequency.exponentialRampToValueAtTime(60, now + 0.1);
 
@@ -152,7 +182,7 @@ class SoundManagerClass {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(260, now);
     osc.frequency.exponentialRampToValueAtTime(880, now + 0.25);
 
@@ -176,7 +206,7 @@ class SoundManagerClass {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(320, now);
     osc.frequency.exponentialRampToValueAtTime(440, now + 0.08);
 
@@ -202,7 +232,7 @@ class SoundManagerClass {
       const osc = this.ctx!.createOscillator();
       const gain = this.ctx!.createGain();
 
-      osc.type = 'triangle';
+      osc.type = "triangle";
       osc.frequency.setValueAtTime(freq, now + idx * 0.06);
 
       gain.gain.setValueAtTime(0.25, now + idx * 0.06);
@@ -226,7 +256,7 @@ class SoundManagerClass {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sawtooth';
+    osc.type = "sawtooth";
     osc.frequency.setValueAtTime(140, now);
     osc.frequency.linearRampToValueAtTime(90, now + 0.25);
 
@@ -251,7 +281,7 @@ class SoundManagerClass {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'triangle';
+    osc.type = "triangle";
     osc.frequency.setValueAtTime(180, now);
     osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
 
@@ -276,8 +306,8 @@ class SoundManagerClass {
       { f: 659.25, t: 0.12 }, // E5
       { f: 783.99, t: 0.24 }, // G5
       { f: 1046.5, t: 0.36 }, // C6
-      { f: 880.0,  t: 0.55 }, // A5
-      { f: 1046.5, t: 0.72 }  // C6 sustained
+      { f: 880.0, t: 0.55 }, // A5
+      { f: 1046.5, t: 0.72 }, // C6 sustained
     ];
 
     const baseTime = this.ctx.currentTime;
@@ -285,7 +315,7 @@ class SoundManagerClass {
       const osc = this.ctx!.createOscillator();
       const gain = this.ctx!.createGain();
 
-      osc.type = 'triangle';
+      osc.type = "triangle";
       osc.frequency.setValueAtTime(f, baseTime + t);
 
       const duration = t === 0.72 ? 0.6 : 0.16;
@@ -312,7 +342,7 @@ class SoundManagerClass {
       const osc = this.ctx!.createOscillator();
       const gain = this.ctx!.createGain();
 
-      osc.type = 'sawtooth';
+      osc.type = "sawtooth";
       osc.frequency.setValueAtTime(freq, now + idx * 0.2);
 
       gain.gain.setValueAtTime(0.25, now + idx * 0.2);
@@ -336,7 +366,7 @@ class SoundManagerClass {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(800, now);
     osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
 
@@ -358,10 +388,23 @@ class SoundManagerClass {
     this.isBgmPlaying = true;
     this.resume();
 
+    if (this.externalMusic && this.ctx && this.bgmGain) {
+      this.externalSource = this.ctx.createBufferSource();
+      this.externalSource.buffer = this.externalMusic;
+      this.externalSource.loop = true;
+      this.externalSource.connect(this.bgmGain);
+      this.externalSource.start();
+      return;
+    }
     // 128 BPM = 0.117s per 16th note step
     const stepDuration = 0.117;
-    const bassNotes = [130.81, 130.81, 164.81, 196.0, 146.83, 146.83, 174.61, 220.0]; // C3, E3, G3, D3, F3, A3
-    const leadNotes = [523.25, 0, 659.25, 783.99, 0, 880.0, 783.99, 659.25, 587.33, 0, 523.25, 659.25, 783.99, 1046.5, 0, 880.0];
+    const bassNotes = [
+      130.81, 130.81, 164.81, 196.0, 146.83, 146.83, 174.61, 220.0,
+    ]; // C3, E3, G3, D3, F3, A3
+    const leadNotes = [
+      523.25, 0, 659.25, 783.99, 0, 880.0, 783.99, 659.25, 587.33, 0, 523.25,
+      659.25, 783.99, 1046.5, 0, 880.0,
+    ];
 
     const playStep = () => {
       if (!this.isBgmPlaying || !this.ctx || !this.bgmGain) return;
@@ -373,7 +416,7 @@ class SoundManagerClass {
         const bassOsc = this.ctx.createOscillator();
         const bassG = this.ctx.createGain();
 
-        bassOsc.type = 'triangle';
+        bassOsc.type = "triangle";
         bassOsc.frequency.setValueAtTime(bassFreq, now);
 
         bassG.gain.setValueAtTime(0.2, now);
@@ -392,7 +435,7 @@ class SoundManagerClass {
         const leadOsc = this.ctx.createOscillator();
         const leadG = this.ctx.createGain();
 
-        leadOsc.type = 'sine';
+        leadOsc.type = "sine";
         leadOsc.frequency.setValueAtTime(leadFreq, now);
 
         leadG.gain.setValueAtTime(0.12, now);
@@ -409,7 +452,7 @@ class SoundManagerClass {
       if (this.currentStep % 2 === 1) {
         const hatOsc = this.ctx.createOscillator();
         const hatG = this.ctx.createGain();
-        hatOsc.type = 'square';
+        hatOsc.type = "square";
         hatOsc.frequency.setValueAtTime(1400, now);
 
         hatG.gain.setValueAtTime(0.03, now);
@@ -430,6 +473,8 @@ class SoundManagerClass {
 
   public stopBGM() {
     this.isBgmPlaying = false;
+    this.externalSource?.stop();
+    this.externalSource = null;
     if (this.bgmTimer !== null) {
       clearInterval(this.bgmTimer);
       this.bgmTimer = null;

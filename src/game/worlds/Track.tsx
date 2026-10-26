@@ -1,14 +1,15 @@
-import React, { useMemo } from 'react';
-import { Text } from '@react-three/drei';
-import { WORLDS } from '../../config/worlds';
-import { useGameStore } from '../../store/gameStore';
+import React, { useMemo } from "react";
+import { Text, RoundedBox } from "@react-three/drei";
+import { WORLDS } from "../../config/worlds";
+import { useGameStore } from "../../store/gameStore";
 
 export const Track: React.FC = () => {
   const worldId = useGameStore((state) => state.activeEpisode.world);
   const targetOrbs = useGameStore((state) => state.activeEpisode.targetOrbs);
   const finishZ = useGameStore((state) => state.levelData.finishZ);
-  const theme = WORLDS[worldId] || WORLDS['sky-islands'];
+  const theme = WORLDS[worldId] || WORLDS["sky-islands"];
 
+  const playerZ = useGameStore((s) => s.playerZ);
   const trackLength = Math.abs(finishZ) + 60;
   const numSegments = Math.ceil(trackLength / 12);
 
@@ -19,7 +20,7 @@ export const Track: React.FC = () => {
       list.push({
         id: i,
         z: -i * 12 - 6,
-        isEven: i % 2 === 0
+        isEven: i % 2 === 0,
       });
     }
     return list;
@@ -27,92 +28,123 @@ export const Track: React.FC = () => {
 
   return (
     <group>
-      {/* --- STARTING RUNWAY & OVERHEAD HOOK ARCH --- */}
-      <group position={[0, 0, -8]}>
-        {/* Overhead Hook Gate Pillars */}
-        <mesh position={[-4.2, 3.2, 0]} castShadow>
-          <cylinderGeometry args={[0.3, 0.35, 6.4, 16]} />
-          <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.7} />
-        </mesh>
-        <mesh position={[4.2, 3.2, 0]} castShadow>
-          <cylinderGeometry args={[0.3, 0.35, 6.4, 16]} />
-          <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.7} />
-        </mesh>
-        {/* Golden Arch Banner */}
-        <mesh position={[0, 6.0, 0]}>
-          <boxGeometry args={[7.2, 1.4, 0.4]} />
-          <meshStandardMaterial color="#d97706" roughness={0.2} metalness={0.8} />
-        </mesh>
-        {/* Big Hook Text: "20 ORBS?" */}
-        <Text
-          position={[0, 6.0, 0.3]}
-          fontSize={0.8}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {`${targetOrbs} ORBS?`}
-        </Text>
-      </group>
-
       {/* --- REPEATING MODULAR TRACK SEGMENTS --- */}
-      {segments.map((seg) => (
-        <group key={seg.id} position={[0, 0, seg.z]}>
-          {/* Main Road Surface */}
-          <mesh position={[0, -0.1, 0]} receiveShadow>
-            <boxGeometry args={[8.0, 0.2, 12]} />
-            <meshStandardMaterial
-              color={seg.isEven ? theme.trackColor : '#f1f5f9'}
-              roughness={0.3}
-              metalness={0.1}
-            />
-          </mesh>
+      {segments
+        .filter((seg) => seg.z < playerZ + 20 && seg.z > playerZ - 150)
+        .map((seg) => (
+          <group key={seg.id} position={[0, 0, seg.z]}>
+            {/* Main Road Surface */}
+            <RoundedBox
+              position={[0, -0.32, 0]}
+              args={[8, 0.64, 11.96]}
+              radius={0.18}
+              receiveShadow
+            >
+              <meshStandardMaterial
+                color={seg.isEven ? theme.trackColor : "#d5ecf4"}
+                roughness={0.3}
+                metalness={0.1}
+              />
+            </RoundedBox>
+            {[-2.4, 0, 2.4].map((x) => (
+              <mesh
+                key={x}
+                position={[x, 0.015, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+              >
+                <planeGeometry args={[2.32, 5.9]} />
+                <meshStandardMaterial
+                  color={seg.isEven ? "#ffffff" : "#eaf5fc"}
+                  roughness={0.48}
+                />
+              </mesh>
+            ))}
 
-          {/* Left Colored Curb Border */}
-          <mesh position={[-4.05, 0.1, 0]} castShadow receiveShadow>
-            <boxGeometry args={[0.3, 0.3, 12]} />
-            <meshStandardMaterial
-              color={theme.trackEdgeColor}
-              roughness={0.2}
-              emissive={theme.trackEdgeColor}
-              emissiveIntensity={0.2}
-            />
-          </mesh>
+            {[-4.05, 4.05].map((x) => (
+              <group key={x}>
+                <mesh position={[x, 0.2, 3]}>
+                  <boxGeometry args={[0.34, 0.3, 3]} />
+                  <meshStandardMaterial color="#ffc446" roughness={0.25} />
+                </mesh>
+                {seg.id % 3 === 0 && (
+                  <group position={[x, 0.8, -4]}>
+                    <mesh>
+                      <cylinderGeometry args={[0.09, 0.13, 1.6, 12]} />
+                      <meshStandardMaterial color="#ffe3a0" />
+                    </mesh>
+                    <mesh position={[0, 0.8, 0]}>
+                      <sphereGeometry args={[0.2, 12, 12]} />
+                      <meshStandardMaterial
+                        color="#ffd05c"
+                        emissive="#ffbb22"
+                        emissiveIntensity={0.4}
+                      />
+                    </mesh>
+                  </group>
+                )}
+              </group>
+            ))}
+            {/* Left Colored Curb Border */}
+            <mesh position={[-4.05, 0.1, 0]} castShadow receiveShadow>
+              <boxGeometry args={[0.3, 0.3, 12]} />
+              <meshStandardMaterial
+                color={theme.trackEdgeColor}
+                roughness={0.2}
+                emissive={theme.trackEdgeColor}
+                emissiveIntensity={0.2}
+              />
+            </mesh>
 
-          {/* Right Colored Curb Border */}
-          <mesh position={[4.05, 0.1, 0]} castShadow receiveShadow>
-            <boxGeometry args={[0.3, 0.3, 12]} />
-            <meshStandardMaterial
-              color={theme.trackEdgeColor}
-              roughness={0.2}
-              emissive={theme.trackEdgeColor}
-              emissiveIntensity={0.2}
-            />
-          </mesh>
+            {/* Right Colored Curb Border */}
+            <mesh position={[4.05, 0.1, 0]} castShadow receiveShadow>
+              <boxGeometry args={[0.3, 0.3, 12]} />
+              <meshStandardMaterial
+                color={theme.trackEdgeColor}
+                roughness={0.2}
+                emissive={theme.trackEdgeColor}
+                emissiveIntensity={0.2}
+              />
+            </mesh>
 
-          {/* Lane Divider Dashes (-1.2 and +1.2) */}
-          <mesh position={[-1.2, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[0.08, 6]} />
-            <meshBasicMaterial color={theme.laneDividerColor} transparent opacity={0.6} />
-          </mesh>
-          <mesh position={[1.2, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[0.08, 6]} />
-            <meshBasicMaterial color={theme.laneDividerColor} transparent opacity={0.6} />
-          </mesh>
-        </group>
-      ))}
+            {/* Lane Divider Dashes (-1.2 and +1.2) */}
+            <mesh position={[-1.2, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[0.08, 6]} />
+              <meshBasicMaterial
+                color={theme.laneDividerColor}
+                transparent
+                opacity={0.6}
+              />
+            </mesh>
+            <mesh position={[1.2, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[0.08, 6]} />
+              <meshBasicMaterial
+                color={theme.laneDividerColor}
+                transparent
+                opacity={0.6}
+              />
+            </mesh>
+          </group>
+        ))}
 
       {/* --- GRAND GOLDEN FINISH PORTAL --- */}
       <group position={[0, 0, finishZ]}>
         {/* Left Golden Crown Pillar */}
         <mesh position={[-3.8, 3.5, 0]} castShadow>
           <cylinderGeometry args={[0.4, 0.5, 7.0, 16]} />
-          <meshStandardMaterial color="#f59e0b" roughness={0.2} metalness={0.8} />
+          <meshStandardMaterial
+            color="#f59e0b"
+            roughness={0.2}
+            metalness={0.8}
+          />
         </mesh>
         {/* Right Golden Crown Pillar */}
         <mesh position={[3.8, 3.5, 0]} castShadow>
           <cylinderGeometry args={[0.4, 0.5, 7.0, 16]} />
-          <meshStandardMaterial color="#f59e0b" roughness={0.2} metalness={0.8} />
+          <meshStandardMaterial
+            color="#f59e0b"
+            roughness={0.2}
+            metalness={0.8}
+          />
         </mesh>
 
         {/* Grand Golden Arch Crown */}
@@ -159,7 +191,7 @@ export const Track: React.FC = () => {
           anchorX="center"
           anchorY="middle"
         >
-          FINISH!
+          FINAL TEST
         </Text>
 
         {/* Radiant Portal Light */}

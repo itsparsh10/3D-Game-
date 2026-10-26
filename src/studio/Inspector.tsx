@@ -1,16 +1,19 @@
-import React from 'react';
-import { Dices, Play, RotateCcw, Video, Zap } from 'lucide-react';
-import { WORLDS } from '../config/worlds';
-import { useGameStore } from '../store/gameStore';
-import { useStudioStore } from '../store/studioStore';
-import { EpisodeDifficulty, EpisodeTwist, WorldId } from '../types/game';
-import { VideoRecorder } from '../game/recording/VideoRecorder';
+import { parseTopic } from "../utils/rules";
+import React, { useState } from "react";
+import { Dices, Play, RotateCcw, Video, Zap } from "lucide-react";
+import { WORLDS } from "../config/worlds";
+import { useGameStore } from "../store/gameStore";
+import { useStudioStore } from "../store/studioStore";
+import { EpisodeDifficulty, EpisodeTwist, WorldId } from "../types/game";
+import { VideoRecorder } from "../game/recording/VideoRecorder";
 
 interface InspectorProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }
 
 export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
+  const [topic, setTopic] = useState("");
+  const [topicError, setTopicError] = useState("");
   const activeEpisode = useGameStore((state) => state.activeEpisode);
   const setEpisode = useGameStore((state) => state.setEpisode);
   const status = useGameStore((state) => state.status);
@@ -26,13 +29,9 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
   // Handler to start synchronized video recording run
   const handleRecordRun = () => {
     if (!canvasRef.current) return;
-    // Auto-enable bot autoplay for pristine hands-free Shorts if desired
-    if (!botAutoplay) {
-      toggleBotAutoplay();
-    }
     resetRun();
-    VideoRecorder.startRecording(canvasRef.current, 30);
-    startCountdown();
+    if (VideoRecorder.startRecording(canvasRef.current, 30))
+      useGameStore.getState().startRun();
   };
 
   const handleStopRecording = () => {
@@ -56,6 +55,30 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
           </span>
         </div>
 
+        <div className="mb-4">
+          <label className="text-xs text-cyan-300">Describe a challenge</label>
+          <textarea
+            aria-label="Challenge topic"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Collect 20 orbs in candy world, 45 seconds"
+            className="w-full rounded-xl bg-slate-900 p-2 text-xs mt-2"
+          />
+          <button
+            className="text-xs text-cyan-300"
+            onClick={() => {
+              try {
+                setEpisode(parseTopic(topic, activeEpisode));
+                setTopicError("");
+              } catch (e) {
+                setTopicError(String(e));
+              }
+            }}
+          >
+            Apply supported preset →
+          </button>
+          {topicError && <p>{topicError}</p>}
+        </div>
         {/* --- FORM FIELDS --- */}
         <div className="flex flex-col gap-3.5 text-xs">
           {/* Episode Title */}
@@ -66,7 +89,9 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
             <input
               type="text"
               value={activeEpisode.title}
-              onChange={(e) => setEpisode({ ...activeEpisode, title: e.target.value })}
+              onChange={(e) =>
+                setEpisode({ ...activeEpisode, title: e.target.value })
+              }
               className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-cyan-500 transition-colors"
             />
           </div>
@@ -86,12 +111,16 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
                     onClick={() => setEpisode({ ...activeEpisode, world: wId })}
                     className={`p-2 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? 'border-cyan-400 bg-cyan-950/40 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-900'
+                        ? "border-cyan-400 bg-cyan-950/40 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.2)]"
+                        : "border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-900"
                     }`}
                   >
-                    <span className="text-[11px] font-bold block truncate">{w.name}</span>
-                    <span className="text-[9px] text-slate-500 capitalize">{w.propsType}</span>
+                    <span className="text-[11px] font-bold block truncate">
+                      {w.name}
+                    </span>
+                    <span className="text-[9px] text-slate-500 capitalize">
+                      {w.propsType}
+                    </span>
                   </button>
                 );
               })}
@@ -115,7 +144,10 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
               step="2"
               value={activeEpisode.targetOrbs}
               onChange={(e) =>
-                setEpisode({ ...activeEpisode, targetOrbs: parseInt(e.target.value, 10) })
+                setEpisode({
+                  ...activeEpisode,
+                  targetOrbs: parseInt(e.target.value, 10),
+                })
               }
               className="w-full accent-cyan-400 cursor-pointer"
             />
@@ -130,11 +162,13 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
               {[30, 45, 60].map((dur) => (
                 <button
                   key={dur}
-                  onClick={() => setEpisode({ ...activeEpisode, durationSeconds: dur })}
+                  onClick={() =>
+                    setEpisode({ ...activeEpisode, durationSeconds: dur })
+                  }
                   className={`py-1.5 rounded-lg border text-xs font-bold transition-all ${
                     activeEpisode.durationSeconds === dur
-                      ? 'border-cyan-400 bg-cyan-500/10 text-cyan-300'
-                      : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-white'
+                      ? "border-cyan-400 bg-cyan-500/10 text-cyan-300"
+                      : "border-slate-800 bg-slate-900 text-slate-400 hover:text-white"
                   }`}
                 >
                   {dur}s
@@ -149,19 +183,23 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
               Difficulty Tier
             </label>
             <div className="grid grid-cols-4 gap-1.5">
-              {(['easy', 'medium', 'hard', 'chaos'] as EpisodeDifficulty[]).map((diff) => (
-                <button
-                  key={diff}
-                  onClick={() => setEpisode({ ...activeEpisode, difficulty: diff })}
-                  className={`py-1.5 rounded-lg border text-[11px] font-extrabold uppercase transition-all ${
-                    activeEpisode.difficulty === diff
-                      ? 'border-amber-400 bg-amber-500/10 text-amber-300'
-                      : 'border-slate-800 bg-slate-900 text-slate-500 hover:text-slate-300'
-                  }`}
-                >
-                  {diff}
-                </button>
-              ))}
+              {(["easy", "medium", "hard", "chaos"] as EpisodeDifficulty[]).map(
+                (diff) => (
+                  <button
+                    key={diff}
+                    onClick={() =>
+                      setEpisode({ ...activeEpisode, difficulty: diff })
+                    }
+                    className={`py-1.5 rounded-lg border text-[11px] font-extrabold uppercase transition-all ${
+                      activeEpisode.difficulty === diff
+                        ? "border-amber-400 bg-amber-500/10 text-amber-300"
+                        : "border-slate-800 bg-slate-900 text-slate-500 hover:text-slate-300"
+                    }`}
+                  >
+                    {diff}
+                  </button>
+                ),
+              )}
             </div>
           </div>
 
@@ -173,12 +211,19 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
             <select
               value={activeEpisode.twist}
               onChange={(e) =>
-                setEpisode({ ...activeEpisode, twist: e.target.value as EpisodeTwist })
+                setEpisode({
+                  ...activeEpisode,
+                  twist: e.target.value as EpisodeTwist,
+                })
               }
               className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:border-cyan-500"
             >
-              <option value="color-gate-choice">Color / Math Choice Gates (+5 / -3)</option>
-              <option value="glitchmaker-attack">Glitchmaker Cube Ambush</option>
+              <option value="color-gate-choice">
+                Color / Math Choice Gates (+5 / -3)
+              </option>
+              <option value="glitchmaker-attack">
+                Glitchmaker Cube Ambush
+              </option>
               <option value="speed-rush">Speed Boost Overdrive</option>
               <option value="low-gravity">Super Spring Low Gravity</option>
             </select>
@@ -201,7 +246,10 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
               type="number"
               value={activeEpisode.seed}
               onChange={(e) =>
-                setEpisode({ ...activeEpisode, seed: parseInt(e.target.value, 10) || 1 })
+                setEpisode({
+                  ...activeEpisode,
+                  seed: parseInt(e.target.value, 10) || 1,
+                })
               }
               className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-white font-mono focus:outline-none focus:border-cyan-500"
             />
@@ -232,14 +280,14 @@ export const Inspector: React.FC<InspectorProps> = ({ canvasRef }) => {
 
         {/* Start / Pause / Reset Buttons */}
         <div className="flex items-center gap-2">
-          {status === 'running' ? (
+          {status === "running" ? (
             <button
               onClick={pauseRun}
               className="flex-1 py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs hover:bg-amber-500/30 transition-all"
             >
               Pause
             </button>
-          ) : status === 'paused' ? (
+          ) : status === "paused" ? (
             <button
               onClick={resumeRun}
               className="flex-1 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-bold text-xs hover:bg-cyan-500/30 transition-all"

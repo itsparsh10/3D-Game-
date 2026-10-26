@@ -1,6 +1,6 @@
-import React from 'react';
-import { AlertTriangle, RotateCcw, XCircle } from 'lucide-react';
-import { useGameStore } from '../../store/gameStore';
+import React from "react";
+import { AlertTriangle, RotateCcw, XCircle } from "lucide-react";
+import { useGameStore } from "../../store/gameStore";
 
 export const DefeatModal: React.FC = () => {
   const status = useGameStore((state) => state.status);
@@ -9,7 +9,7 @@ export const DefeatModal: React.FC = () => {
   const resetRun = useGameStore((state) => state.resetRun);
   const startCountdown = useGameStore((state) => state.startCountdown);
 
-  if (status !== 'defeat') return null;
+  if (status !== "defeat") return null;
 
   const neededMore = Math.max(0, targetOrbs - orbsCollected);
 
@@ -34,17 +34,23 @@ export const DefeatModal: React.FC = () => {
         <p className="text-sm text-slate-300 mb-6">
           {neededMore > 0 ? (
             <>
-              Gloop needed <span className="text-cyan-400 font-bold">{neededMore} more orbs</span> to unlock the golden portal!
+              Gloop needed{" "}
+              <span className="text-cyan-400 font-bold">
+                {neededMore} more orbs
+              </span>{" "}
+              to unlock the golden portal!
             </>
           ) : (
-            'Gloop collided with a hazard along the obstacle track!'
+            "Gloop collided with a hazard along the obstacle track!"
           )}
         </p>
 
         {/* Stats */}
         <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3 mb-6 flex justify-around">
           <div>
-            <span className="text-[10px] text-slate-400 block">ORBS COLLECTED</span>
+            <span className="text-[10px] text-slate-400 block">
+              ORBS COLLECTED
+            </span>
             <span className="text-lg font-black text-cyan-300 font-['Fredoka']">
               {orbsCollected} / {targetOrbs}
             </span>
